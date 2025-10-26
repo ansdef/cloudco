@@ -35,9 +35,7 @@ services:
       DB_NAME: ${DB_NAME:-cloudco}
       DB_USER: ${DB_USER:-postgres}
       DB_PASSWORD: ${DB_PASSWORD:-postgres}
-      CORS_ORIGIN: http://localhost:5173
-    ports:
-      - "3001:3001"
+      CORS_ORIGIN: https://cloudco.senip.fun
     volumes:
       - ./server:/app
       - /app/node_modules
@@ -45,6 +43,17 @@ services:
       postgres:
         condition: service_healthy
     restart: unless-stopped
+    networks:
+      traefik:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cloudco-backend.tls=false"
+      - "traefik.http.routers.cloudco-backend.tls.options=default"
+      - "traefik.http.routers.cloudco-backend.tls.certresolver=letsEncrypt"
+      - "traefik.http.routers.cloudco-backend.rule=(Host(`cloudco.senip.fun`) || Host(`www.cloudco.senip.fun`)) && PathPrefix(`/api`)"
+      - "traefik.http.services.cloudco-backend.loadbalancer.server.port=3001"
+      - "traefik.http.routers.cloudco-backend.entryPoints=http,https"
+      - "traefik.docker.network=traefik"
 
   # Frontend
   frontend:
@@ -53,15 +62,28 @@ services:
       dockerfile: Dockerfile
     container_name: cloudco-frontend
     environment:
-      VITE_API_URL: http://localhost:3001/api
-    ports:
-      - "5173:5173"
+      VITE_API_URL: https://cloudco.senip.fun/api
     volumes:
       - .:/app
       - /app/node_modules
     depends_on:
       - backend
     restart: unless-stopped
+    networks:
+      traefik:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cloudco-frontend.tls=false"
+      - "traefik.http.routers.cloudco-frontend.tls.options=default"
+      - "traefik.http.routers.cloudco-frontend.tls.certresolver=letsEncrypt"
+      - "traefik.http.routers.cloudco-frontend.rule=Host(`cloudco.senip.fun`) || Host(`www.cloudco.senip.fun`)"
+      - "traefik.http.services.cloudco-frontend.loadbalancer.server.port=5173"
+      - "traefik.http.routers.cloudco-frontend.entryPoints=http,https"
+      - "traefik.docker.network=traefik"
 
 volumes:
   postgres_data:
+
+networks:
+  traefik:
+    external: true
