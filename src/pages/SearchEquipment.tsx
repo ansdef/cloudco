@@ -30,8 +30,9 @@ const SearchEquipment = () => {
   );
 
   return (
-    <div className="min-h-screen bg-background pb-8">
-      <Header />
+    <div className="min-h-screen bg-background">
+      <div className="max-w-[430px] mx-auto min-h-screen bg-background pb-8">
+        <Header />
       
       <main className="px-6 space-y-6">
         <SearchBar 
@@ -53,6 +54,7 @@ const SearchEquipment = () => {
           </div>
         )}
       </main>
+      </div>
     </div>
   );
 };

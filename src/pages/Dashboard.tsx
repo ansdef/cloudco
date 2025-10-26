@@ -8,8 +8,9 @@ import { Button } from "@/components/ui/button";
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-background pb-8">
-      <Header />
+    <div className="min-h-screen bg-background">
+      <div className="max-w-[430px] mx-auto min-h-screen bg-background pb-8">
+        <Header />
       
       <main className="px-6 space-y-8">
         <SearchBar placeholder="Поиск" />
@@ -84,6 +85,7 @@ const Dashboard = () => {
           </div>
         </section>
       </main>
+      </div>
     </div>
   );
 };
