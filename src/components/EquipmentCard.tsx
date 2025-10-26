@@ -2,14 +2,16 @@ import { Button } from "@/components/ui/button";
 import { MapPin } from "lucide-react";
 
 interface EquipmentCardProps {
+  id: string;
   name: string;
   address: string;
   workingHours: string;
   distance: string;
   isOpen: boolean;
+  onRent?: (id: string) => void;
 }
 
-const EquipmentCard = ({ name, address, workingHours, distance, isOpen }: EquipmentCardProps) => {
+const EquipmentCard = ({ id, name, address, workingHours, distance, isOpen, onRent }: EquipmentCardProps) => {
   return (
     <div className="bg-card border border-border rounded-2xl p-5 space-y-4">
       <div>
@@ -29,7 +31,11 @@ const EquipmentCard = ({ name, address, workingHours, distance, isOpen }: Equipm
         </div>
       </div>
 
-      <Button className="w-full bg-gradient-primary hover:opacity-90 text-foreground font-medium rounded-xl h-12">
+      <Button 
+        className="w-full bg-gradient-primary hover:opacity-90 text-foreground font-medium rounded-xl h-12"
+        onClick={() => onRent && onRent(id)}
+        disabled={!isOpen}
+      >
         Арендовать
       </Button>
     </div>

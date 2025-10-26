@@ -1,0 +1,11 @@
+node_modules
+npm-debug.log
+yarn-error.log
+dist
+.env.local
+.env.development
+.env.production
+*.log
+.DS_Store
+Thumbs.db
+coverage

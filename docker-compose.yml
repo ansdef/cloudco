@@ -1,0 +1,91 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: cloudco-postgres
+    environment:
+      POSTGRES_DB: ${DB_NAME:-cloudco}
+      POSTGRES_USER: ${DB_USER:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-postgres}
+    ports:
+      - ":5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Backend API
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: cloudco-backend
+    environment:
+      NODE_ENV: development
+      PORT: 3001
+      JWT_SECRET: ${JWT_SECRET:-cloudco-secret-key-change-in-production}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-7d}
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: ${DB_NAME:-cloudco}
+      DB_USER: ${DB_USER:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-postgres}
+      CORS_ORIGIN: https://cloudco.senip.fun
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      default:
+      traefik:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cloudco-backend.tls=true"
+      - "traefik.http.routers.cloudco-backend.tls.options=default"
+      - "traefik.http.routers.cloudco-backend.tls.certresolver=letsEncrypt"
+      - "traefik.http.routers.cloudco-backend.rule=(Host(`cloudco.senip.fun`) || Host(`www.cloudco.senip.fun`)) && PathPrefix(`/api`)"
+      - "traefik.http.services.cloudco-backend.loadbalancer.server.port=3001"
+      - "traefik.http.routers.cloudco-backend.entryPoints=http,https"
+      - "traefik.docker.network=traefik"
+
+  # Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: cloudco-frontend
+    environment:
+      VITE_API_URL: https://cloudco.senip.fun/api
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      default:
+      traefik:
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.cloudco-frontend.tls=true"
+      - "traefik.http.routers.cloudco-frontend.tls.options=default"
+      - "traefik.http.routers.cloudco-frontend.tls.certresolver=letsEncrypt"
+      - "traefik.http.routers.cloudco-frontend.rule=Host(`cloudco.senip.fun`) || Host(`www.cloudco.senip.fun`)"
+      - "traefik.http.services.cloudco-frontend.loadbalancer.server.port=5173"
+      - "traefik.http.routers.cloudco-frontend.entryPoints=http,https"
+      - "traefik.docker.network=traefik"
+
+volumes:
+  postgres_data:
+
+networks:
+  traefik:
+    external: true

@@ -3,55 +3,23 @@ import SearchBar from "@/components/SearchBar";
 import InstitutionCard from "@/components/InstitutionCard";
 import EquipmentCard from "@/components/EquipmentCard";
 import { useState } from "react";
+import { useInstitutions } from "@/hooks/useInstitutions";
+import { useEquipment } from "@/hooks/useEquipment";
 
 const SearchAddress = () => {
   const [searchQuery, setSearchQuery] = useState("");
-
-  const institutions = [
-    {
-      id: "1",
-      name: "ГОАУ Новгородский Кванторум",
-      address: "Большая Московская ул., 39, корп. 1",
-      workingHours: "9:00-19:00",
-      isOpen: true,
-      logo: "/placeholder.svg",
-    },
-    {
-      id: "2",
-      name: "ГОАУ Новгородский Кванторум",
-      address: "Большая Московская ул., 39, корп. 1",
-      workingHours: "9:00-19:00",
-      isOpen: false,
-      logo: "/placeholder.svg",
-    },
-  ];
-
-  const equipment = [
-    {
-      id: "1",
-      name: "Фрезерный станок",
-      address: "Большая Московская ул., 126, корп. 3",
-      workingHours: "10:00-17:00",
-      distance: "1.26 км от вас",
-      isOpen: true,
-    },
-    {
-      id: "2",
-      name: "Фрезерный станок",
-      address: "Большая Московская ул., 126, корп. 3",
-      workingHours: "10:00-17:00",
-      distance: "1.26 км от вас",
-      isOpen: false,
-    },
-  ];
+  const { institutions, loading: institutionsLoading } = useInstitutions();
+  const { equipment, loading: equipmentLoading } = useEquipment();
 
   const filteredInstitutions = institutions.filter(item =>
     item.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filteredEquipment = equipment.filter(item =>
-    item.address.toLowerCase().includes(searchQuery.toLowerCase())
+    (item.Institution?.address || "").toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const isLoading = institutionsLoading || equipmentLoading;
 
   return (
     <div className="min-h-screen bg-background">
@@ -66,15 +34,36 @@ const SearchAddress = () => {
           onClear={() => setSearchQuery("")}
         />
 
-        <div className="space-y-4">
-          {filteredInstitutions.map((item) => (
-            <InstitutionCard key={item.id} {...item} />
-          ))}
-          
-          {filteredEquipment.map((item) => (
-            <EquipmentCard key={item.id} {...item} />
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">Загрузка...</p>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {filteredInstitutions.map((item) => (
+              <InstitutionCard 
+                key={item.id} 
+                id={item.id}
+                name={item.name}
+                address={item.address}
+                workingHours={item.workingHours}
+                isOpen={item.isOpen}
+                logo={item.logo}
+              />
+            ))}
+            
+            {filteredEquipment.map((item: any) => (
+              <EquipmentCard 
+                key={item.id} 
+                name={item.name}
+                address={item.Institution?.address || ""}
+                workingHours={item.workingHours}
+                distance={item.distance || "N/A"}
+                isOpen={item.isOpen}
+              />
+            ))}
+          </div>
+        )}
       </main>
       </div>
     </div>
