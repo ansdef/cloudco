@@ -5,8 +5,11 @@ import CourseCard from "@/components/CourseCard";
 import NewsCard from "@/components/NewsCard";
 import { ChevronRight, SlidersHorizontal } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useCourses } from "@/hooks/useCourses";
 
 const Dashboard = () => {
+  const { courses, loading } = useCourses();
+
   return (
     <div className="min-h-screen bg-background">
       <div className="max-w-[430px] mx-auto min-h-screen bg-background pb-8">
@@ -36,20 +39,23 @@ const Dashboard = () => {
             </Button>
           </div>
           
-          <div className="space-y-3">
-            <CourseCard 
-              id="1"
-              title="Информационные технологии и проектная деятельность"
-              direction="IT Квантум"
-              spotsLeft={2}
-            />
-            <CourseCard 
-              id="2"
-              title="Информационные технологии и проектная деятельность"
-              direction="VR/AR Квантум"
-              spotsLeft={3}
-            />
-          </div>
+          {loading ? (
+            <div className="text-center py-8">
+              <p className="text-muted-foreground">Загрузка...</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {courses.map((course) => (
+                <CourseCard 
+                  key={course.id}
+                  id={course.id}
+                  title={course.title}
+                  direction={course.direction}
+                  spotsLeft={course.availableSpots}
+                />
+              ))}
+            </div>
+          )}
         </section>
 
         <section>

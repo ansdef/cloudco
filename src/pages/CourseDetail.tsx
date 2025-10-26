@@ -2,13 +2,63 @@ import Header from "@/components/Header";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useCourse } from "@/hooks/useCourses";
+import { bookingsApi } from "@/lib/api";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const CourseDetail = () => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { course, loading } = useCourse(id || "");
+  const { user, isAuthenticated } = useAuth();
   const [selectedDate, setSelectedDate] = useState(10);
   const [selectedTime, setSelectedTime] = useState("14:00");
   const [agreedToTerms, setAgreedToTerms] = useState(true);
   const [agreedToNotifications, setAgreedToNotifications] = useState(true);
   const [addToCalendar, setAddToCalendar] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
+
+  const handleBook = async () => {
+    if (!isAuthenticated) {
+      toast.error("Необходимо войти в систему");
+      return;
+    }
+
+    if (!course) {
+      toast.error("Курс не найден");
+      return;
+    }
+
+    if (!agreedToTerms) {
+      toast.error("Необходимо согласиться на обработку персональных данных");
+      return;
+    }
+
+    const selectedDateTime = new Date(`2025-07-${selectedDate}T${selectedTime}:00`);
+
+    setIsBooking(true);
+    try {
+      const response = await bookingsApi.create({
+        courseId: course.id,
+        date: selectedDateTime.toISOString(),
+        time: selectedTime,
+        notes: addToCalendar ? "Добавить в календарь" : "",
+      });
+
+      if (response.error) {
+        toast.error(response.error);
+      } else {
+        toast.success("Бронирование успешно создано!");
+        navigate("/");
+      }
+    } catch (error) {
+      toast.error("Ошибка при бронировании");
+    } finally {
+      setIsBooking(false);
+    }
+  };
 
   const currentMonth = "Июль 2025";
   const days = Array.from({ length: 31 }, (_, i) => i + 1);
@@ -20,32 +70,38 @@ const CourseDetail = () => {
         <Header />
         
         <main className="px-4 space-y-5">
-          <div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">VR/AR Квантум</h1>
-            <p className="text-muted-foreground text-sm mb-1">Большая Московская ул., 39, корп. 1</p>
-            <p className="text-status-open text-sm">Осталось 2 свободных места</p>
-          </div>
-
-          <div className="relative h-[240px] rounded-3xl overflow-hidden">
-            <img 
-              src="/placeholder.svg" 
-              alt="Course" 
-              className="w-full h-full object-cover"
-            />
-            <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center">
-              <div className="flex gap-1.5">
-                <div className="w-1.5 h-1.5 rounded-full bg-white"></div>
-                <div className="w-1.5 h-1.5 rounded-full bg-white/50"></div>
-                <div className="w-1.5 h-1.5 rounded-full bg-white/50"></div>
-              </div>
+          {loading ? (
+            <div className="text-center py-12">
+              <p className="text-muted-foreground">Загрузка...</p>
             </div>
-          </div>
+          ) : course ? (
+            <>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground mb-2">{course.direction}</h1>
+                <p className="text-muted-foreground text-sm mb-1">{course.Institution?.address || ""}</p>
+                <p className="text-status-open text-sm">Осталось {course.availableSpots} свободных места</p>
+              </div>
 
-          <div className="text-foreground leading-relaxed text-sm">
-            <p>
-              Интересуетесь наукой и техникой? Собираетесь стать великим создателем игр? Мечтаете освоить новейшие информационные технологии, игровые движки, хотите собрать собственные VR очки, создать свою первую 3D-модель или научиться обрабатывать панорамные видеоролики? Всё это у нас!
-            </p>
-          </div>
+              <div className="relative h-[240px] rounded-3xl overflow-hidden">
+                <img 
+                  src={course.images?.[0] || "/placeholder.svg"} 
+                  alt={course.title} 
+                  className="w-full h-full object-cover"
+                />
+                {course.images && course.images.length > 1 && (
+                  <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center">
+                    <div className="flex gap-1.5">
+                      {course.images.map((_, idx) => (
+                        <div key={idx} className={`w-1.5 h-1.5 rounded-full ${idx === 0 ? 'bg-white' : 'bg-white/50'}`}></div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="text-foreground leading-relaxed text-sm">
+                <p>{course.description || "Нет описания"}</p>
+              </div>
 
           <section className="space-y-4">
             <h2 className="text-xl font-bold text-foreground italic">Записаться на консультацию</h2>
@@ -103,8 +159,12 @@ const CourseDetail = () => {
               </div>
             </div>
 
-            <Button className="w-full bg-gradient-primary hover:opacity-90 text-foreground font-medium rounded-xl h-12">
-              Забронировать
+            <Button 
+              className="w-full bg-gradient-primary hover:opacity-90 text-foreground font-medium rounded-xl h-12"
+              onClick={handleBook}
+              disabled={isBooking}
+            >
+              {isBooking ? "Обработка..." : "Забронировать"}
             </Button>
 
             <div className="space-y-3">
@@ -146,6 +206,12 @@ const CourseDetail = () => {
               </div>
             </div>
           </section>
+            </>
+          ) : (
+            <div className="text-center py-12">
+              <p className="text-destructive">Курс не найден</p>
+            </div>
+          )}
         </main>
       </div>
     </div>

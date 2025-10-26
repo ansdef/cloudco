@@ -1,73 +1,126 @@
-# Welcome to your Lovable project
+# CloudCo - Сервис бронирования оборудования и курсов
 
-## Project info
+Современный веб-приложение для бронирования оборудования и записи на курсы в образовательных учреждениях.
 
-**URL**: https://lovable.dev/projects/24e6cb14-2d24-41e2-a2a3-30382d048ed6
+## 🚀 Быстрый старт
 
-## How can I edit this code?
+### Вариант 1: Docker (Рекомендуется)
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/24e6cb14-2d24-41e2-a2a3-30382d048ed6) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
+1. Клонируйте репозиторий:
+```bash
 git clone <YOUR_GIT_URL>
+cd cloudco
+```
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+2. Создайте файл `.env`:
+```bash
+cp .env.example .env
+# Отредактируйте .env при необходимости
+```
 
-# Step 3: Install the necessary dependencies.
-npm i
+3. Запустите все сервисы:
+```bash
+docker-compose up -d
+```
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+4. Инициализируйте базу данных:
+```bash
+docker-compose exec backend npm run db:seed
+```
+
+5. Откройте приложение:
+- Frontend: http://localhost:5173
+- Backend: http://localhost:3001/api
+
+**Подробнее**: См. [docker-guide.md](docker-guide.md)
+
+### Вариант 2: Локальная установка
+
+1. Клонируйте репозиторий:
+```bash
+git clone <YOUR_GIT_URL>
+cd cloudco
+```
+
+2. Установите зависимости:
+```bash
+# Frontend
+npm install
+
+# Backend
+cd server
+npm install
+cd ..
+```
+
+3. Создайте базу данных PostgreSQL:
+```bash
+createdb cloudco
+```
+
+4. Настройте backend:
+```bash
+cd server
+cp .env.example .env
+# Отредактируйте .env
+npm run db:seed
+cd ..
+```
+
+5. Запустите сервисы:
+
+Терминал 1 (Backend):
+```bash
+cd server && npm run dev
+```
+
+Терминал 2 (Frontend):
+```bash
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## 📚 Технологии
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-**Use GitHub Codespaces**
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
+### Frontend
 - Vite
 - TypeScript
-- React
+- React 18
 - shadcn-ui
 - Tailwind CSS
+- React Query
+- React Router
 
-## How can I deploy this project?
+### Backend
+- Node.js
+- TypeScript
+- Express.js
+- PostgreSQL
+- Sequelize ORM
+- JWT Authentication
+- bcryptjs
 
-Simply open [Lovable](https://lovable.dev/projects/24e6cb14-2d24-41e2-a2a3-30382d048ed6) and click on Share -> Publish.
+## 🔑 Тестовые данные
 
-## Can I connect a custom domain to my Lovable project?
+После запуска seed скрипта будут созданы:
 
-Yes, you can!
+**Администратор:**
+- Email: `admin@cloudco.ru`
+- Password: `admin123`
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+**Тестовый пользователь:**
+- Email: `user@cloudco.ru`
+- Password: `user123`
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
+## 📖 Документация
+
+- [Инструкция по установке backend](server/INSTALLATION.md)
+- [API Документация](server/README.md)
+- [Docker Guide](docker-guide.md)
+
+## 🐳 Docker Services
+
+Проект включает:
+
+- **frontend** - React приложение (порт 5173)
+- **backend** - Express API (порт 3001)
+- **postgres** - PostgreSQL база данных (порт 5432)
