@@ -47,7 +47,7 @@ services:
       traefik:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.cloudco-backend.tls=false"
+      - "traefik.http.routers.cloudco-backend.tls=true"
       - "traefik.http.routers.cloudco-backend.tls.options=default"
       - "traefik.http.routers.cloudco-backend.tls.certresolver=letsEncrypt"
       - "traefik.http.routers.cloudco-backend.rule=(Host(`cloudco.senip.fun`) || Host(`www.cloudco.senip.fun`)) && PathPrefix(`/api`)"
@@ -73,7 +73,7 @@ services:
       traefik:
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.cloudco-frontend.tls=false"
+      - "traefik.http.routers.cloudco-frontend.tls=true"
       - "traefik.http.routers.cloudco-frontend.tls.options=default"
       - "traefik.http.routers.cloudco-frontend.tls.certresolver=letsEncrypt"
       - "traefik.http.routers.cloudco-frontend.rule=Host(`cloudco.senip.fun`) || Host(`www.cloudco.senip.fun`)"
